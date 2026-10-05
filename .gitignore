@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.ruff_cache/
+# KOMPAS lock and backup files
+~$*
+*.bak

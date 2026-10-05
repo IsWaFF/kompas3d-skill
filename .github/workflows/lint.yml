@@ -1,0 +1,17 @@
+name: lint
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: shellcheck
+        run: shellcheck install.sh launcher/kompas-nested skill/kompas-3d/scripts/run.sh
+      - name: ruff
+        run: pipx run ruff==0.16.10 check .
+      - name: python syntax
+        run: python3 -m py_compile skill/kompas-3d/scripts/*.py examples/*.py
