@@ -1,8 +1,21 @@
-#!/bin/bash
-# Run a Python script against the running KOMPAS-3D (inside distrobox kompas-box).
-# Usage: run.sh /abs/path/script.py   (T=seconds overrides the 120s timeout)
-# The script can `import ksapi`, `from constants import constants as c`,
+#!/usr/bin/env bash
+# Run a Python script against the running KOMPAS-3D inside the distrobox.
+# Usage: run.sh script.py [args...]
+# Env:   T=seconds (timeout, default 120), KOMPAS_BOX (default kompas-box),
+#        KOMPAS_DIR (default /opt/ascon/kompas3d-v25).
+# The script can `import ksapi`, `from constants import constants as c`
 # and `import ks` (helpers from this skill).
-SKILL_DIR="$(cd "$(dirname "$0")" && pwd)"
-exec distrobox enter kompas-box -- bash -c \
-  "cd /opt/ascon/kompas3d-v25/Bin && PYTHONPATH=/opt/ascon/kompas3d-v25/Bin:$SKILL_DIR timeout ${T:-120} python3 $* 2>&1 | grep -v -i apport"
+set -euo pipefail
+
+[[ $# -ge 1 ]] || { echo "usage: $0 script.py [args...]" >&2; exit 2; }
+SKILL_DIR=$(cd "$(dirname "$0")" && pwd)
+BOX=${KOMPAS_BOX:-kompas-box}
+BIN=${KOMPAS_DIR:-/opt/ascon/kompas3d-v25}/Bin
+script=$(realpath "$1"); shift
+
+# ksapi expects to be imported from the KOMPAS Bin directory, so cd there.
+# The box prints apport noise on every start; filter it out.
+# shellcheck disable=SC2016  # $0/$1/$@ belong to the inner bash
+distrobox enter "$BOX" -- env PYTHONPATH="$BIN:$SKILL_DIR" \
+  bash -c 'cd "$1" && shift && exec timeout "$0" python3 "$@"' "${T:-120}" "$BIN" "$script" "$@" 2>&1 \
+  | { grep -v -i apport || true; }
