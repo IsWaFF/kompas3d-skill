@@ -14,4 +14,24 @@ jobs:
       - name: ruff
         run: pipx run ruff==0.16.10 check .
       - name: python syntax
-        run: python3 -m py_compile skill/kompas-3d/scripts/*.py examples/*.py
+        run: python3 -m py_compile skill/kompas-3d/scripts/*.py examples/*.py tests/*.py tests/stub/Bin/*.py
+
+  # run.py against a stub ksapi (tests/stub): paths, working dir, Cyrillic args, exit code.
+  runner:
+    name: run.py on ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python: python3
+          - os: windows-latest
+            python: python
+    runs-on: ${{ matrix.os }}
+    env:
+      KOMPAS_DIR: tests/stub
+      KOMPAS_BOX: none
+    steps:
+      - uses: actions/checkout@v5
+      - name: probe
+        run: ${{ matrix.python }} skill/kompas-3d/scripts/run.py tests/probe.py один "два слова"

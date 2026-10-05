@@ -17,8 +17,8 @@ from constants import constants as c
 
 app = ksapi.GetKompas()
 if app is None:
-    raise SystemExit('KOMPAS not found: start it (kompas-nested), wait until it has finished loading, and make '
-                     'sure it runs as the real kHome binary, not through the kompas-home-v25 symlink')
+    raise SystemExit('KOMPAS not found: start it and wait until it has finished loading (Linux: start the real '
+                     'kHome binary, e.g. with kompas-nested, not the kompas-home-v25 symlink)')
 
 # The target document and its active view; set by use().
 doc = d2 = view = dc = sc = None

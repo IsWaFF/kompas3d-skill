@@ -1,8 +1,14 @@
-# КОМПАС-3D на Linux: скилл для Claude Code
+# КОМПАС-3D: скилл для Claude Code
 
 **[English version](README.md)**
 
-[Скилл для Claude Code](https://claude.com/claude-code) и Python-помощники, которые управляют **КОМПАС-3D v25** через его Python API (`ksapi`) в нативной Linux-сборке. Claude с ними строит фрагменты и чертежи: геометрию, размеры, заливку, экспорт в PNG. Плюс лаунчер, из-за которого КОМПАС больше не роняет Wayland-сессию.
+[Скилл для Claude Code](https://claude.com/claude-code) и Python-помощники, которые управляют **КОМПАС-3D v25** через его Python API (`ksapi`). Claude с ними строит фрагменты и чертежи: геометрию, размеры, заливку, экспорт в PNG. Плюс лаунчер для Linux, из-за которого КОМПАС больше не роняет Wayland-сессию.
+
+| Платформа | Статус |
+|---|---|
+| Linux, КОМПАС в distrobox | Проверено на КОМПАС-3D v25 Home |
+| Linux, КОМПАС без бокса | Должно работать (`KOMPAS_BOX=none`), с КОМПАСом не проверялось |
+| Windows | Должно работать: АСКОН документирует там тот же Python API. Запускатель скриптов проверен на Windows с заглушкой вместо API, но с настоящим КОМПАСом на Windows ещё не пробовали. [Напиши](https://github.com/IsWaFF/kompas3d-linux-skill/issues), как прошёл `examples/selftest.py`. |
 
 <p align="center">
   <img src="docs/flange.png" width="520" alt="Фланец, построенный examples/flange.py">
@@ -15,10 +21,11 @@
 |---|---|
 | [`skill/kompas-3d/SKILL.md`](skill/kompas-3d/SKILL.md) | Сам скилл: настройка, порядок работы над чертежом и подводные камни API, проверенные на v25 |
 | [`skill/kompas-3d/scripts/ks.py`](skill/kompas-3d/scripts/ks.py) | Помощники: `seg` `arc` `circle` `polygon` `text`, `rdim` `ddim` `ldim` `adim`, `fill`, `overlaps`, `export_png`, `save` |
-| [`skill/kompas-3d/scripts/run.sh`](skill/kompas-3d/scripts/run.sh) | Запускает Python-скрипт внутри distrobox против запущенного КОМПАСа |
+| [`skill/kompas-3d/scripts/run.py`](skill/kompas-3d/scripts/run.py) | Запускает Python-скрипт против запущенного КОМПАСа: на Linux внутри distrobox, на Windows напрямую (`run.sh` — сокращение для Linux) |
 | [`skill/kompas-3d/scripts/pdf_images.py`](skill/kompas-3d/scripts/pdf_images.py) | Достаёт рисунки и текст из PDF с заданием |
-| [`launcher/kompas-nested`](launcher/kompas-nested) | Запускает КОМПАС внутри Xephyr + openbox |
+| [`launcher/kompas-nested`](launcher/kompas-nested) | Linux: запускает КОМПАС внутри Xephyr + openbox |
 | [`examples/`](examples) | `flange.py` (картинка выше) и `selftest.py` (проверяет все помощники на твоём КОМПАСе) |
+| [`tests/`](tests) | Проверка `run.py` в CI на Linux и Windows с заглушкой вместо API |
 
 ## Зачем
 
@@ -29,16 +36,20 @@
   - растровый экспорт по умолчанию серый и зависает на модальном окне, если файл уже есть.
 
   В скилле записано, что реально работает, чтобы Claude не наступал на это каждый раз заново.
-- **КОМПАС роняет swayfx.** Его контекстная панель — всплывающее окно XWayland, которое очень быстро появляется и исчезает. swayfx 0.6 на нём падает вместе со всей сессией. `kompas-nested` запускает КОМПАС во вложенном X-сервере, и композитор видит одно обычное окно.
+- **На Linux КОМПАС роняет swayfx.** Его контекстная панель — всплывающее окно XWayland, которое очень быстро появляется и исчезает. swayfx 0.6 на нём падает вместе со всей сессией. `kompas-nested` запускает КОМПАС во вложенном X-сервере, и композитор видит одно обычное окно.
 
 ## Что нужно
 
-- Linux с [distrobox](https://distrobox.it/) (podman или docker).
-- КОМПАС-3D v25 для Linux в боксе на Ubuntu 24.04, установленный из apt-репозитория АСКОН по их инструкции. Проверено на КОМПАС-3D v25 Home 25.0.1.2738 (`ascon-kompas3d-home-v25-full`).
-- В боксе для лаунчера: `xserver-xephyr openbox x11-xkb-utils`.
+- КОМПАС-3D v25, хватит и Home.
 - [Claude Code](https://claude.com/claude-code) для скилла. Помощники работают и без него.
+- **Linux:**
+  - [distrobox](https://distrobox.it/) (podman или docker) с боксом на Ubuntu 24.04, а в нём КОМПАС из apt-репозитория АСКОН по их инструкции. Проверено: v25 Home 25.0.1.2738 (`ascon-kompas3d-home-v25-full`).
+  - В боксе для лаунчера: `xserver-xephyr openbox x11-xkb-utils`.
+- **Windows:** 64-битный Python 3 (`ksapi.py` грузит 64-битную DLL).
 
 ## Установка
+
+Linux:
 
 ```bash
 # один раз: бокс (потом поставь в него КОМПАС по инструкции АСКОН)
@@ -52,15 +63,24 @@ cd kompas3d-linux-skill
 
 `install.sh` кладёт скилл в `~/.claude/skills/kompas-3d`, лаунчер в `~/.local/bin/kompas-nested` и добавляет пункт меню «КОМПАС-3D (во вложенном X)». Если там уже что-то лежит, оно переезжает в `~/.claude/backups/kompas-3d-install-<время>/`. Куда ставить, меняется через `CLAUDE_CONFIG_DIR`, `BIN_DIR` и `XDG_DATA_HOME`.
 
+Windows (PowerShell):
+
+```powershell
+git clone https://github.com/IsWaFF/kompas3d-linux-skill
+cd kompas3d-linux-skill
+New-Item -ItemType Directory -Force "$env:USERPROFILE\.claude\skills" | Out-Null
+Copy-Item -Recurse skill\kompas-3d "$env:USERPROFILE\.claude\skills\"
+```
+
 ## Как пользоваться
 
-Запусти КОМПАС через `kompas-nested` и попроси Claude Code, например: «начерти в компасе фланец Ø120 с четырьмя отверстиями». Скилл срабатывает на слова КОМПАС / чертёж / фрагмент.
+Запусти КОМПАС (на Linux через `kompas-nested`) и попроси Claude Code, например: «начерти в компасе фланец Ø120 с четырьмя отверстиями». Скилл срабатывает на слова КОМПАС / чертёж / фрагмент.
 
 Без Claude:
 
 ```bash
-skill/kompas-3d/scripts/run.sh examples/flange.py ~/out     # -> ~/out/flange.frw, ~/out/flange.png
-skill/kompas-3d/scripts/run.sh examples/selftest.py ~/out   # быстрая проверка всех помощников
+python3 skill/kompas-3d/scripts/run.py examples/selftest.py   # быстрая проверка всех помощников (на Windows: py вместо python3)
+python3 skill/kompas-3d/scripts/run.py examples/flange.py ~/out   # -> ~/out/flange.frw, ~/out/flange.png
 ```
 
 ```python
@@ -74,14 +94,22 @@ ks.save('/home/me/part.frw')
 ks.export_png('/home/me/part.png')
 ```
 
-Переменные окружения (бокс, путь установки, дисплей, раскладка и т.д.) описаны в [английском README](README.md#configuration). Для sway есть [`launcher/sway.conf`](launcher/sway.conf).
+Переменные окружения (путь установки, бокс, таймаут, настройки лаунчера) описаны в [английском README](README.md#configuration). Для sway есть [`launcher/sway.conf`](launcher/sway.conf).
 
 ## Ограничения
 
-- Проверено на одной системе: Garuda Linux, swayfx 0.6, КОМПАС-3D v25 Home. Другие композиторы и редакции должны работать, но не проверялись.
+- С КОМПАСом проверено на одной системе: Garuda Linux, swayfx 0.6, КОМПАС-3D v25 Home. Другие композиторы, редакции и Windows должны работать, но с КОМПАСом не проверялись.
 - Только 2D (фрагменты и чертежи).
-- API нужен настоящий дисплей: под Xvfb окно лицензий не завершается и порт API не открывается. Запускай в обычной графической сессии.
-- Windows не покрыт. Сам `ksapi.py` поддерживает Windows, так что `ks.py` там, возможно, заработает, но `run.sh` и лаунчер только для Linux.
+- Linux: API нужен настоящий дисплей. Под Xvfb окно лицензий не завершается и порт API не открывается. Запускай в обычной графической сессии.
+
+## Доработка
+
+- Когда Claude узнаёт об API что-то новое, он дописывает `SKILL.md` или `ks.py` (см. «Improving this skill» в конце `SKILL.md`).
+- После изменений кода надо прогнать:
+  - `examples/selftest.py` на настоящем КОМПАСе;
+  - `ruff check .`;
+  - `shellcheck` для shell-скриптов.
+- CI гоняет линтеры и `tests/probe.py` через `run.py` на Ubuntu и Windows.
 
 ## Лицензия
 

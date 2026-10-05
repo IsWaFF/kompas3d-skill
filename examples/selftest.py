@@ -1,17 +1,18 @@
 """Smoke test of every helper in ks.py against a running KOMPAS (creates a scratch fragment).
 
-    skill/kompas-3d/scripts/run.sh examples/selftest.py [out_dir]
+    python3 skill/kompas-3d/scripts/run.py examples/selftest.py [out_dir]     (Windows: py instead of python3)
 
 Prints OK at the end, or raises on the first failed check. Useful after a KOMPAS update.
 """
 import math
 import os
 import sys
+import tempfile
 
 import ks
 from constants import constants as c
 
-out = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else '/tmp')
+out = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else tempfile.gettempdir())
 
 
 def check(cond, what):

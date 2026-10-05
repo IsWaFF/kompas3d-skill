@@ -1,20 +1,21 @@
 """Example: a flange plate with four bolt holes and a keyed bore.
 
-Start KOMPAS first (kompas-nested), then:
-    skill/kompas-3d/scripts/run.sh examples/flange.py [out_dir]
+Start KOMPAS first (on Linux: kompas-nested), then:
+    python3 skill/kompas-3d/scripts/run.py examples/flange.py [out_dir]     (Windows: py instead of python3)
 
 It creates a new fragment, draws the part with final (already trimmed) geometry,
 dimensions it, checks for stacked lines and saves flange.frw + flange.png to out_dir
-(default /tmp).
+(default: the system temp dir).
 """
 import math
 import os
 import sys
+import tempfile
 
 import ks
 from constants import constants as c
 
-out = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else '/tmp')
+out = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else tempfile.gettempdir())
 ks.new_fragment()
 
 R = 60          # outer radius

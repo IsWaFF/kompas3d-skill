@@ -1,20 +1,29 @@
 ---
 name: kompas-3d
-description: Drive KOMPAS-3D v25 (native Linux build, running in a distrobox) from Python to build 2D fragments and drawings (segments, circles, arcs, polygons, linear/radial/diametral/angle dimensions, colour fills, ornaments, flat parts), export PNG, and troubleshoot its launch on Wayland. Use whenever the user mentions КОМПАС/Компас/KOMPAS, чертёж, фрагмент (.frw/.cdw), or an engineering-graphics (черчение) task.
+description: Drive KOMPAS-3D v25 from Python (Linux build in a distrobox, tested; Windows per ASCON's docs) to build 2D fragments and drawings (segments, circles, arcs, polygons, linear/radial/diametral/angle dimensions, colour fills, ornaments, flat parts), export PNG, and troubleshoot its launch on Wayland. Use whenever the user mentions КОМПАС/Компас/KOMPAS, чертёж, фрагмент (.frw/.cdw), or an engineering-graphics (черчение) task.
 ---
 
 # KOMPAS-3D automation
 
-## Setup this skill assumes
-- KOMPAS-3D v25 (tested: Home 25.0.1.2738) in a distrobox, default name `kompas-box` (Ubuntu 24.04), installed under `/opt/ascon/kompas3d-v25`. Override with `KOMPAS_BOX` / `KOMPAS_DIR`. Only Qt's **xcb** plugin ships, so KOMPAS always runs through X11.
+## Setup
+### Linux (tested: Home 25.0.1.2738)
+- KOMPAS-3D v25 in a distrobox, default name `kompas-box` (Ubuntu 24.04), installed under `/opt/ascon/kompas3d-v25`. Override with `KOMPAS_BOX` / `KOMPAS_DIR`. For a native install without a box, set `KOMPAS_BOX=none`. Only Qt's **xcb** plugin ships, so KOMPAS always runs through X11.
 - Start it with **`kompas-nested`** (the launcher next to this skill's repo): KOMPAS inside Xephyr + openbox. On swayfx 0.6, KOMPAS's context panel (an XWayland `window_type=utility` popup that maps/unmaps quickly) aborts the compositor and kills the whole session. Nested, the compositor sees one ordinary window. On sway, never run `swaymsg 'for_window … a, b'` at runtime: the commas split it into separate commands. Edit the config file and `swaymsg reload` instead.
 - The API needs a real display. Under Xvfb the licence window never finishes and the API port never opens.
-- Ask the user where their files and assignment PDFs are. Don't guess paths.
+- `ksapi.GetKompas()` reads `/proc/net/tcp`, looks for a listening socket owned by a process named `kHome` and connects to it. It returns `None` while KOMPAS is starting (the port opens after the licence check), or if KOMPAS was started via the `kompas-home-v25` symlink (different process name). `OpenKompas()` hardcodes `kKompas`, which Home lacks.
+
+### Windows (from ASCON's SDK docs; not tested yet)
+- The same Python API ships in KOMPAS's `Bin` folder: `ksapi.py`, `constants.py`, `ksAPICLink.dll`. The default path is `C:\Program Files\ASCON\KOMPAS-3D v25\Bin`; override with `KOMPAS_DIR`.
+- It needs a 64-bit Python 3, because `ksapi.py` loads the 64-bit DLL with ctypes. No launcher is needed: start KOMPAS as usual.
+- `OpenKompas()` looks for `KOMPAS.exe`, and Home's executable is `kHome.exe`. So, as on Linux, attach to a running KOMPAS.
+- The helpers and the gotchas below are API-level and should hold here too, but they were verified on Linux only. When something turns out different on Windows, fix this section (see "Improving this skill").
+
+Everywhere: ask the user where their files and assignment PDFs are. Don't guess paths.
 
 ## Connecting
-- `ksapi.GetKompas()` reads `/proc/net/tcp`, looks for a listening socket owned by a process named `kHome` and connects to it. It returns `None` while KOMPAS is starting (the port opens after the licence check), or if KOMPAS was started via the `kompas-home-v25` symlink (different process name). `OpenKompas()` hardcodes `kKompas`, which Home lacks. So always attach to a running instance and ask the user to start KOMPAS.
-- Run scripts with `scripts/run.sh /path/script.py [args]`. It enters the box, sets PYTHONPATH to KOMPAS `Bin` plus this skill's `scripts/`, and applies a 120 s timeout (`T=300` raises it).
-- Put scratch scripts under `$HOME`, which is shared with the box (`$CLAUDE_JOB_DIR/tmp` if set).
+- Always attach to a running instance (`ksapi.GetKompas()`), and ask the user to start KOMPAS.
+- Run scripts with `scripts/run.py /path/script.py [args]`: `python3` on Linux, `py` on Windows (`scripts/run.sh` is a Linux shortcut). It sets PYTHONPATH to KOMPAS `Bin` plus this skill's `scripts/`, runs from `Bin`, streams the output and applies a 120 s timeout (`T=300` raises it). On Linux it runs the script inside the box.
+- Put scratch scripts somewhere the KOMPAS side can read: on Linux under `$HOME`, which is shared with the box (`$CLAUDE_JOB_DIR/tmp` if set).
 - Helpers: `import ks`. The full list is in `scripts/ks.py`:
   - documents: `ks.new_fragment()`, `ks.use(doc)`, `ks.info()`, `ks.clear()`;
   - geometry: `seg`, `pt`, `axes`, `circle`, `arc`, `polygon`, `text`;
@@ -72,7 +81,7 @@ description: Drive KOMPAS-3D v25 (native Linux build, running in a distrobox) fr
   3. Keep only edges between faces of different colour.
   4. Fill each face with `fill()`.
 - Short arcs in axial style (≈ 25 mm) render as one long dash, which looks like a solid line. This is normal.
-- Screenshot of the real screen (for reports): `distrobox enter kompas-box -- bash -c "DISPLAY=:5 xwd -root -silent > f.xwd"; magick f.xwd f.png`. Fit the view first with `ks.doc.GetDocumentFrame().ZoomPrevNextOrAll(c.ksZoomAll)`.
+- Screenshot of the real screen (for reports, Linux): `distrobox enter kompas-box -- bash -c "DISPLAY=:5 xwd -root -silent > f.xwd"; magick f.xwd f.png`. Fit the view first with `ks.doc.GetDocumentFrame().ZoomPrevNextOrAll(c.ksZoomAll)`.
 
 ## Honesty
 The user may be learning from these tasks, and a teacher may ask them to redo one live. Say plainly what was estimated or might be wrong. Don't claim a drawing matches the figure until you have compared the exported PNG with it.
