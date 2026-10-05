@@ -1,6 +1,6 @@
 # KOMPAS-3D: Claude Code skill
 
-[![lint](https://github.com/IsWaFF/kompas3d-linux-skill/actions/workflows/lint.yml/badge.svg)](https://github.com/IsWaFF/kompas3d-linux-skill/actions/workflows/lint.yml)
+[![lint](https://github.com/IsWaFF/kompas3d-skill/actions/workflows/lint.yml/badge.svg)](https://github.com/IsWaFF/kompas3d-skill/actions/workflows/lint.yml)
 
 **[Русская версия](README.ru.md)**
 
@@ -10,7 +10,7 @@ A [Claude Code](https://claude.com/claude-code) skill and Python helpers that dr
 |---|---|
 | Linux, KOMPAS in a distrobox | Tested with KOMPAS-3D v25 Home |
 | Linux, native install | Should work (`KOMPAS_BOX=none`), not tried with KOMPAS |
-| Windows | Should work: ASCON documents the same Python API there. The script runner is tested on Windows with a stub API, but KOMPAS on Windows has not been tried yet. [Tell us](https://github.com/IsWaFF/kompas3d-linux-skill/issues) how `examples/selftest.py` goes. |
+| Windows | Should work: ASCON documents the same Python API there. The script runner is tested on Windows with a stub API, but KOMPAS on Windows has not been tried yet. [Tell us](https://github.com/IsWaFF/kompas3d-skill/issues) how `examples/selftest.py` goes. |
 
 <p align="center">
   <img src="docs/flange.png" width="520" alt="Flange drawn by examples/flange.py">
@@ -58,8 +58,8 @@ Linux:
 distrobox create -n kompas-box -i ubuntu:24.04
 distrobox enter kompas-box -- sudo apt install -y xserver-xephyr openbox x11-xkb-utils
 
-git clone https://github.com/IsWaFF/kompas3d-linux-skill
-cd kompas3d-linux-skill
+git clone https://github.com/IsWaFF/kompas3d-skill
+cd kompas3d-skill
 ./install.sh            # or ./install.sh --link to symlink instead of copying
 ```
 
@@ -68,8 +68,8 @@ cd kompas3d-linux-skill
 Windows (PowerShell):
 
 ```powershell
-git clone https://github.com/IsWaFF/kompas3d-linux-skill
-cd kompas3d-linux-skill
+git clone https://github.com/IsWaFF/kompas3d-skill
+cd kompas3d-skill
 New-Item -ItemType Directory -Force "$env:USERPROFILE\.claude\skills" | Out-Null
 Copy-Item -Recurse skill\kompas-3d "$env:USERPROFILE\.claude\skills\"
 ```

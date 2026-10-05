@@ -8,7 +8,7 @@
 |---|---|
 | Linux, КОМПАС в distrobox | Проверено на КОМПАС-3D v25 Home |
 | Linux, КОМПАС без бокса | Должно работать (`KOMPAS_BOX=none`), с КОМПАСом не проверялось |
-| Windows | Должно работать: АСКОН документирует там тот же Python API. Запускатель скриптов проверен на Windows с заглушкой вместо API, но с настоящим КОМПАСом на Windows ещё не пробовали. [Напиши](https://github.com/IsWaFF/kompas3d-linux-skill/issues), как прошёл `examples/selftest.py`. |
+| Windows | Должно работать: АСКОН документирует там тот же Python API. Запускатель скриптов проверен на Windows с заглушкой вместо API, но с настоящим КОМПАСом на Windows ещё не пробовали. [Напиши](https://github.com/IsWaFF/kompas3d-skill/issues), как прошёл `examples/selftest.py`. |
 
 <p align="center">
   <img src="docs/flange.png" width="520" alt="Фланец, построенный examples/flange.py">
@@ -56,8 +56,8 @@ Linux:
 distrobox create -n kompas-box -i ubuntu:24.04
 distrobox enter kompas-box -- sudo apt install -y xserver-xephyr openbox x11-xkb-utils
 
-git clone https://github.com/IsWaFF/kompas3d-linux-skill
-cd kompas3d-linux-skill
+git clone https://github.com/IsWaFF/kompas3d-skill
+cd kompas3d-skill
 ./install.sh            # или ./install.sh --link, чтобы ставить симлинками
 ```
 
@@ -66,8 +66,8 @@ cd kompas3d-linux-skill
 Windows (PowerShell):
 
 ```powershell
-git clone https://github.com/IsWaFF/kompas3d-linux-skill
-cd kompas3d-linux-skill
+git clone https://github.com/IsWaFF/kompas3d-skill
+cd kompas3d-skill
 New-Item -ItemType Directory -Force "$env:USERPROFILE\.claude\skills" | Out-Null
 Copy-Item -Recurse skill\kompas-3d "$env:USERPROFILE\.claude\skills\"
 ```
