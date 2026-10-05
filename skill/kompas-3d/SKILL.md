@@ -76,3 +76,10 @@ description: Drive KOMPAS-3D v25 (native Linux build, running in a distrobox) fr
 
 ## Honesty
 The user may be learning from these tasks, and a teacher may ask them to redo one live. Say plainly what was estimated or might be wrong. Don't claim a drawing matches the figure until you have compared the exported PNG with it.
+
+## Improving this skill
+When you find something new about the API, or a note here turns out to be wrong, update this file or `scripts/ks.py` before you finish:
+- Write down only what you checked in KOMPAS: values read back from the API, or what you saw in the exported PNG. Mark anything unverified as unverified.
+- Keep it generic. User names, personal paths and one-off task content belong in the user's notes or memory, not here.
+- If you changed code, run `examples/selftest.py` from the repo root (two levels above this file) against a running KOMPAS, plus `ruff check .` and `shellcheck` on the shell scripts.
+- This folder is usually a symlink into a git checkout. Leave the changes for the user to review (`git diff`) and commit.
