@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=KOMPAS-3D (nested)
+Name[ru]=КОМПАС-3D (во вложенном X)
+Comment=KOMPAS-3D inside Xephyr + openbox, safe on Wayland compositors
+Comment[ru]=КОМПАС-3D в Xephyr + openbox, не роняет Wayland-композитор
+Exec=kompas-nested
+Icon=kompaslogo
+Terminal=false
+Categories=Graphics;Engineering;

@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# Start KOMPAS-3D (Linux build, installed in a distrobox) inside a nested Xephyr + openbox.
+#
+# Why: KOMPAS's context panel is an XWayland "utility" popup that maps and unmaps very fast.
+# swayfx 0.6 aborts on it and takes the whole session down. Inside Xephyr the Wayland
+# compositor sees one ordinary window, and openbox manages KOMPAS's popups.
+#
+# Env: KOMPAS_BOX     distrobox name               (default kompas-box)
+#      KOMPAS_DIR     KOMPAS install dir in the box (default /opt/ascon/kompas3d-v25)
+#      KOMPAS_BIN     executable in $KOMPAS_DIR/Bin (default kHome; ksapi.GetKompas() looks for it)
+#      KOMPAS_DISPLAY nested X display              (default :5)
+#      KOMPAS_SCREEN  initial Xephyr size           (default 1400x850; the window is resizeable)
+#      KOMPAS_XKB_LAYOUT / KOMPAS_XKB_OPTION        (default us,ru / grp:alt_shift_toggle)
+#      KOMPAS_OB_RC   openbox config, generated on first run
+#                     (default ${XDG_CONFIG_HOME:-~/.config}/kompas-nested/rc.xml)
+set -euo pipefail
+
+export KOMPAS_DIR=${KOMPAS_DIR:-/opt/ascon/kompas3d-v25}
+export KOMPAS_BIN=${KOMPAS_BIN:-kHome}
+export KOMPAS_DISPLAY=${KOMPAS_DISPLAY:-:5}
+export KOMPAS_SCREEN=${KOMPAS_SCREEN:-1400x850}
+export KOMPAS_XKB_LAYOUT=${KOMPAS_XKB_LAYOUT:-us,ru}
+export KOMPAS_XKB_OPTION=${KOMPAS_XKB_OPTION:-grp:alt_shift_toggle}
+export KOMPAS_OB_RC=${KOMPAS_OB_RC:-${XDG_CONFIG_HOME:-$HOME/.config}/kompas-nested/rc.xml}
+
+# Everything below runs inside the box ($HOME is shared with the host).
+# shellcheck disable=SC2016  # expanded by the inner bash, not here
+exec distrobox enter "${KOMPAS_BOX:-kompas-box}" -- bash -c '
+set -eu
+n=${KOMPAS_DISPLAY#:}
+# a crashed Xephyr leaves its socket and lock behind, and a new one would refuse to start
+if [ -e "/tmp/.X11-unix/X$n" ] && ! pgrep -x Xephyr >/dev/null; then
+  rm -f "/tmp/.X11-unix/X$n" "/tmp/.X$n-lock"
+fi
+
+# openbox config: the stock one plus a rule that shows KOMPAS undecorated and maximized
+if [ ! -f "$KOMPAS_OB_RC" ]; then
+  mkdir -p "$(dirname "$KOMPAS_OB_RC")"
+  sed "s|</applications>|  <application class=\"KOMPAS\" type=\"normal\">\n    <decor>no</decor>\n    <maximized>yes</maximized>\n  </application>\n</applications>|" \
+    /etc/xdg/openbox/rc.xml > "$KOMPAS_OB_RC"
+fi
+
+Xephyr "$KOMPAS_DISPLAY" -resizeable -no-host-grab -title "KOMPAS-3D" -screen "$KOMPAS_SCREEN" >/dev/null 2>&1 &
+xephyr=$!
+trap "kill $xephyr 2>/dev/null" EXIT
+for _ in $(seq 100); do [ -e "/tmp/.X11-unix/X$n" ] && break; sleep 0.1; done
+
+export DISPLAY=$KOMPAS_DISPLAY QT_QPA_PLATFORM=xcb
+setxkbmap -layout "$KOMPAS_XKB_LAYOUT" -option "$KOMPAS_XKB_OPTION" || true
+openbox --config-file "$KOMPAS_OB_RC" >/dev/null 2>&1 &
+"$KOMPAS_DIR/Bin/$KOMPAS_BIN"
+'
