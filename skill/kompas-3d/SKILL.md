@@ -62,9 +62,11 @@ Everywhere: ask the user where their files and assignment PDFs are. Don't guess 
   - KOMPAS measures **CCW from line1's direction to line2's** (direction = the segment's start → end). Swap the arguments if you get the reflex angle. X3/Y3 does not choose the angle.
   - With bare X1/Y1/X2/Y2 points, the second ray's angle is taken from the sheet origin, not the vertex. The values are wrong unless the vertex is at (0, 0). Angle1/Angle2 setters are ignored.
 - **Diametral dims:**
-  - `IDiametralDimension` has no ShelfX/Y, and `SetShelfAngle`/`SetShelfLength` don't stick (they read back 0).
-  - To move the text along the dimension line: `IDimensionParams.SetTextType(ksDimTManual)` + `SetTextPos(mm from the line's far end)`. That is `ddim(text_at=)`.
-  - Small circles get a leader and shelf automatically. `SetTextOnLine(ksDTPOnShelf)` + `SetTextPos` lengthens the leader (`ddim(leader=)`), and `SetShelfDirection(ksLSLeft/Right)` picks the side.
+  - `IDiametralDimension` has no ShelfX/Y. In the default text mode `SetShelfAngle`/`SetShelfLength` don't stick (they read back 0).
+  - To move the text along the dimension line: `IDimensionParams.SetTextType(ksDimTManual)` + `SetTextPos(mm from the line's far end)`. That is `ddim(text_at=)`. A larger value carries the text past the circle, along the line (the «Ø36 written on the leader outside» style); a negative one moves it past the centre.
+  - Small circles get a leader and shelf automatically. `SetTextOnLine(ksDTPOnShelf)` + `SetTextPos` lengthens the leader (`ddim(leader=)`), and `SetShelfDirection(ksLSLeft/Right)` picks the side. On a big circle (half dim) this puts the shelf **inside** the circle, on the contour.
+  - Text on a shelf **outside** the circle (the usual Ø78-with-a-shelf look): `SetTextType(ksDTPOnShelf)` (TextType, not TextOnLine) + `SetShelfDirection`. Here `SetShelfLength(mm)` sticks and sets how far the leader runs past the circle; `SetTextPos` is ignored. Works for half dims on big circles and for full dims on small holes (`GetTextUnder().SetStr('5 отв.')` goes under the shelf).
+- **Radial dims:** with `rdim(shelf=(x, y))` the shelf point must lie **outside** the arc, beyond it from the centre. A shelf point on the centre side leaves the arrow hanging in empty space. For the text on the centre side (concave fillets, whose outside is the part's interior), use `SetTextType(ksDimTManual)` + `SetTextPos(-5…-10)`: the line runs from the arc past the centre to the text, and the arrow stays on the arc.
   - Prefix: `IDimensionText.GetPrefix().SetStr('4 отв. ')`.
   - `SetDimensionType(False)` is a full dim with two arrows. `True` is a half dim: one arrow, and the line breaks just past the centre.
 - **Dimension text masks the lines under it** (a white gap in PNG export). Keep texts off contours. The default spot of a half-dim text is near the middle of the line, often right on an inner circle.
@@ -81,6 +83,15 @@ Everywhere: ask the user where their files and assignment PDFs are. Don't guess 
   3. Keep only edges between faces of different colour.
   4. Fill each face with `fill()`.
 - Short arcs in axial style (≈ 25 mm) render as one long dash, which looks like a solid line. This is normal.
+- **Drawing sheet (.cdw):** `doc = app.GetDocuments().Add(c.ksDocumentDrawing, True)`, then `sheet = doc.GetLayoutSheets().GetItem(0)`.
+  - Frame: `sheet.SetLayoutLibraryFileName(<install>/Sys/GRAPHIC_2023.LYT)` + `SetLayoutStyleNumber(1)`.
+  - Size: `sheet.GetFormat()`, then `SetFormat(c.ksFormatA3)` + `SetVerticalOrientation(False)`, then `sheet.Update()`.
+  - Title block: `st = sheet.GetStamp()`, `st.GetText(cell).SetStr(s)`, then `st.Update()`. Cell 6 is the scale and 8 the sheet count; 32 (format) fills itself.
+  - Drawing straight into the system view uses sheet millimetres, origin at the bottom-left corner, so offset the part.
+  - To read a .cdw someone sent, open it read-only: `Open(path, True, True)`. `GetLayoutSheets()`, the stamp cells, `GetAuthor()` and `IKompasDocument2D(...).GetViewsAndLayersManager().GetViews()` show its format and contents. Close it with `Close(c.kdDoNotSaveChanges)`.
+- `.cdw`/`.frw` files are zip archives. The author is not plain text inside, so use `doc.GetAuthor()` to check it, and `SetAuthor('')` to clear it.
+- `SaveAs` to a path that another open document already has returns False and leaves an unnamed copy open. Close the old document first.
+- PDF: `app.GetConverterByPath(<install>/Bin/libPdf2d.so).Convert(src_cdw, dst_pdf, 0, False)` returns 1 and gives a vector PDF with the frame (on Windows the converter is `Pdf2d.dll`; unverified).
 - Screenshot of the real screen (for reports, Linux): `distrobox enter kompas-box -- bash -c "DISPLAY=:5 xwd -root -silent > f.xwd"; magick f.xwd f.png`. Fit the view first with `ks.doc.GetDocumentFrame().ZoomPrevNextOrAll(c.ksZoomAll)`.
 
 ## Honesty
