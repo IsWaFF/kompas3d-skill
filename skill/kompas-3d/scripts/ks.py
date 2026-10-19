@@ -151,12 +151,12 @@ def ddim(xc, yc, r, ang, half=False, text_at=None, leader=None, shelf_dir=None, 
     dd.SetDimensionType(half)
     if text_at is not None:
         pr = ksapi.IDimensionParams(dd)
-        pr.SetTextType(c.ksDimTManual); pr.SetTextPos(text_at)
+        pr.SetTextType(c.ksDimTManual); pr.SetTextPos(round(text_at))   # int only
     elif leader is not None or shelf_dir is not None:
         pr = ksapi.IDimensionParams(dd)
         pr.SetTextOnLine(c.ksDTPOnShelf)
         if leader is not None:
-            pr.SetTextPos(leader)
+            pr.SetTextPos(round(leader))
         if shelf_dir is not None:
             pr.SetShelfDirection(shelf_dir)
     if base is not None:
