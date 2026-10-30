@@ -48,6 +48,9 @@ Everywhere: ask the user where their files and assignment PDFs are. Don't guess 
    - holes repeated N times get `under='N отв.'` / `prefix='N отв. '`;
    - a square size uses `ldim(..., sign=2)` (□);
    - concentric diameters through a crowded centre are usually half dims (`ddim(..., half=True)`).
+   - spacing per ГОСТ 2.307: a dimension line ≥ 10 mm from the contour, ≥ 7 mm between parallel ones; the smaller of
+     parallel dims goes nearer the view, so no extension line crosses a dimension line. Teachers check this, and it is
+     easy to get wrong when adding dims to an existing view: check every extension line against every dimension line.
 
    Copy the figure dimension by dimension.
 5. `ks.overlaps()` must return `[]`. Users check drawings for «наслоения»: collinear overlapping segments, or arcs and circles on the same circle.
@@ -93,6 +96,8 @@ Everywhere: ask the user where their files and assignment PDFs are. Don't guess 
   - Size: `sheet.GetFormat()`, then `SetFormat(c.ksFormatA3)` + `SetVerticalOrientation(False)`, then `sheet.Update()`.
   - Title block: `st = sheet.GetStamp()`, `st.GetText(cell).SetStr(s)`, then `st.Update()`. Cell 6 is the scale and 8 the sheet count; 32 (format) fills itself.
   - Drawing straight into the system view uses sheet millimetres, origin at the bottom-left corner, so offset the part.
+  - Changing an existing sheet's size: `fmt = sheet.GetFormat()`, `fmt.SetFormat(c.ksFormatA3)`, `fmt.SetVerticalOrientation(False)`, `sheet.Update()`. The stamp keeps its texts and moves to the new corner (checked in PNG export).
+  - **Putting an existing .frw onto a sheet as plain objects** (not a link to the file): make the target view current, then `grp = IKompasDocument2D(doc).GetDrawingGroups().Add(True, '')` (temporary group), `grp.ReadFragment(path, False, x, y, 1.0, 0, False)`, `grp.Store()`. The fragment's origin lands at (x, y) of the current view. A non-temporary group (`Add(False, …)`) makes `ReadFragment` return False.
   - To read a .cdw someone sent, open it read-only: `Open(path, True, True)`. `GetLayoutSheets()`, the stamp cells, `GetAuthor()` and `IKompasDocument2D(...).GetViewsAndLayersManager().GetViews()` show its format and contents. Close it with `Close(c.kdDoNotSaveChanges)`.
 - `.cdw`/`.frw` files are zip archives. The author is not plain text inside, so use `doc.GetAuthor()` to check it, and `SetAuthor('')` to clear it.
 - `SaveAs` to a path that another open document already has returns False and leaves an unnamed copy open. Close the old document first.
