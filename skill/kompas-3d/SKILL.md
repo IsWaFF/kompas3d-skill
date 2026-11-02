@@ -10,6 +10,7 @@ description: Drive KOMPAS-3D v25 from Python (Linux build in a distrobox, tested
 - KOMPAS-3D v25 in a distrobox, default name `kompas-box` (Ubuntu 24.04), installed under `/opt/ascon/kompas3d-v25`. Override with `KOMPAS_BOX` / `KOMPAS_DIR`. For a native install without a box, set `KOMPAS_BOX=none`. Only Qt's **xcb** plugin ships, so KOMPAS always runs through X11.
 - Start it with **`kompas-nested`** (the launcher next to this skill's repo): KOMPAS inside Xephyr + openbox. On swayfx 0.6, KOMPAS's context panel (an XWayland `window_type=utility` popup that maps/unmaps quickly) aborts the compositor and kills the whole session. Nested, the compositor sees one ordinary window. On sway, never run `swaymsg 'for_window … a, b'` at runtime: the commas split it into separate commands. Edit the config file and `swaymsg reload` instead.
 - The API needs a real display. Under Xvfb the licence window never finishes and the API port never opens.
+- Start it without `HTTP_PROXY`/`HTTPS_PROXY` in the environment. Launched from a shell with a local proxy set, the «Менеджер лицензий» window stayed black and the API port stayed closed for 50 minutes; the same launch with those variables unset answered in 15 s.
 - `ksapi.GetKompas()` reads `/proc/net/tcp`, looks for a listening socket owned by a process named `kHome` and connects to it. It returns `None` while KOMPAS is starting (the port opens after the licence check), or if KOMPAS was started via the `kompas-home-v25` symlink (different process name). `OpenKompas()` hardcodes `kKompas`, which Home lacks.
 
 ### Windows (from ASCON's SDK docs; not tested yet)
@@ -78,6 +79,8 @@ Everywhere: ask the user where their files and assignment PDFs are. Don't guess 
 - `IDimensionParams.SetTextPos` takes an **int**: a float raises `ctypes.ArgumentError`. The helpers round for you.
 - A document's path is `IKompasDocument.GetFullPath()`; there is no `GetPathName`. Handy for closing your own earlier test runs: loop over `app.GetDocuments()` and `Close(c.kdDoNotSaveChanges)` the ones whose path you wrote.
 - **Dimension text masks the lines under it** (a white gap in PNG export). Keep texts off contours. The default spot of a half-dim text is near the middle of the line, often right on an inner circle.
+- **Linear dims:** in `ldim`, the coordinate of (x3, y3) along the dimension line matters too. Outside the measured span KOMPAS extends the line and drags the text out there (seen on vertical dims with y3 = 0 far below the span). Keep it mid-span.
+- **Smooth curves (conics, section curves):** `b = dc.GetBeziers().Add()`, then `b.AddPoint(i, x, y, xLeft, yLeft, xRight, yRight)` with absolute handle coordinates, then `SetStyle` and `Update`. Handles at ±p'(t)·h/3 (cubic Hermite, h = parameter step) followed ellipses, parabolas and hyperbolas to within the line width in PNG export. Where the derivative blows up at an end, reparametrise the last stretch (x = x_end − t²). `ks.overlaps()` doesn't look at Beziers.
 - Colours are COLORREF `0xBBGGRR`. Use `ks.rgb(r, g, b)`.
 - Raster export is greyscale unless `SetColorType(1)`. If the file exists, it raises a modal «файл уже существует» on the user's screen, so delete it first (the helper does).
 - `MakeEncloseContours` returns an IDrawingGroup. Pass `grp.GetObjects([0])` to `AddBoundaries`. `IDrawingContainer.GetObjects` takes a list: `GetObjects([0])`.
