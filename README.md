@@ -8,7 +8,7 @@ A [Claude Code](https://claude.com/claude-code) skill and Python helpers that dr
 
 | Platform | Status |
 |---|---|
-| Linux, KOMPAS in a distrobox | Tested with KOMPAS-3D v25 Home |
+| Linux, KOMPAS in a distrobox | Tested with KOMPAS-3D v25 Home and Учебная версия (Study) |
 | Linux, native install | Should work (`KOMPAS_BOX=none`), not tried with KOMPAS |
 | Windows | Should work: ASCON documents the same Python API there. The script runner is tested on Windows with a stub API, but KOMPAS on Windows has not been tried yet. [Tell us](https://github.com/IsWaFF/kompas3d-skill/issues) how `examples/selftest.py` goes. |
 
@@ -42,10 +42,10 @@ A [Claude Code](https://claude.com/claude-code) skill and Python helpers that dr
 
 ## Requirements
 
-- KOMPAS-3D v25. Home is enough.
+- KOMPAS-3D v25. Home or the free Учебная версия (Study) is enough.
 - [Claude Code](https://claude.com/claude-code) for the skill part. The helpers work on their own too.
 - **Linux:**
-  - [distrobox](https://distrobox.it/) (podman or docker) with an Ubuntu 24.04 box, and KOMPAS installed inside it from ASCON's apt repository following their instructions. Tested: v25 Home 25.0.1.2738 (`ascon-kompas3d-home-v25-full`).
+  - [distrobox](https://distrobox.it/) (podman or docker) with an Ubuntu 24.04 box, and KOMPAS installed inside it from ASCON's apt repository following their instructions. Tested: v25 Home 25.0.1.2738 (`ascon-kompas3d-home-v25-full`) and v25 Study 25.0.1.2738 (`ascon-kompas-study-v25`, which replaces the Home config package on the same core).
   - In the box, for the launcher: `xserver-xephyr openbox x11-xkb-utils`.
 - **Windows:** 64-bit Python 3 (`ksapi.py` loads a 64-bit DLL).
 
@@ -103,7 +103,8 @@ ks.export_png('/home/me/part.png')
 | `KOMPAS_DIR` | `/opt/ascon/kompas3d-v25`, Windows: `C:\Program Files\ASCON\KOMPAS-3D v25` | `run.py`, launcher |
 | `KOMPAS_BOX` | `kompas-box`; `none` = KOMPAS installed natively | `run.py` (Linux), launcher |
 | `T` | `120` | `run.py` timeout, seconds |
-| `KOMPAS_BIN` | `kHome` | launcher |
+| `KOMPAS_BIN` | `kStudy` if installed, else `kHome` | launcher |
+| `KOMPAS_PORT` | unset (first KOMPAS found) | `ks.py`: attach to the instance listening on this port |
 | `KOMPAS_DISPLAY` | `:5` | launcher |
 | `KOMPAS_SCREEN` | `1400x850` | launcher (initial size, the window resizes) |
 | `KOMPAS_XKB_LAYOUT` / `KOMPAS_XKB_OPTION` | `us,ru` / `grp:alt_shift_toggle` | launcher |

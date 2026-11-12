@@ -15,10 +15,12 @@ import os
 import ksapi
 from constants import constants as c
 
-app = ksapi.GetKompas()
+# KOMPAS_PORT picks one instance when several are running (`ss -ltnp | grep -E 'kStudy|kHome'` in the box).
+_port = os.environ.get('KOMPAS_PORT')
+app = ksapi.IApplication(int(_port)) if _port else ksapi.GetKompas()
 if app is None:
     raise SystemExit('KOMPAS not found: start it and wait until it has finished loading (Linux: start the real '
-                     'kHome binary, e.g. with kompas-nested, not the kompas-home-v25 symlink)')
+                     'kStudy/kHome binary, e.g. with kompas-nested, not the kompas-*-v25 symlink)')
 
 # The target document and its active view; set by use().
 doc = d2 = view = dc = sc = None

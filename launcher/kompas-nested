@@ -7,7 +7,8 @@
 #
 # Env: KOMPAS_BOX     distrobox name               (default kompas-box)
 #      KOMPAS_DIR     KOMPAS install dir in the box (default /opt/ascon/kompas3d-v25)
-#      KOMPAS_BIN     executable in $KOMPAS_DIR/Bin (default kHome; ksapi.GetKompas() looks for it)
+#      KOMPAS_BIN     executable in $KOMPAS_DIR/Bin (default kStudy if installed, else kHome;
+#                     ksapi.GetKompas() looks for these names)
 #      KOMPAS_DISPLAY nested X display              (default :5)
 #      KOMPAS_SCREEN  initial Xephyr size           (default 1400x850; the window is resizeable)
 #      KOMPAS_XKB_LAYOUT / KOMPAS_XKB_OPTION        (default us,ru / grp:alt_shift_toggle)
@@ -16,7 +17,7 @@
 set -euo pipefail
 
 export KOMPAS_DIR=${KOMPAS_DIR:-/opt/ascon/kompas3d-v25}
-export KOMPAS_BIN=${KOMPAS_BIN:-kHome}
+export KOMPAS_BIN=${KOMPAS_BIN:-}
 export KOMPAS_DISPLAY=${KOMPAS_DISPLAY:-:5}
 export KOMPAS_SCREEN=${KOMPAS_SCREEN:-1400x850}
 export KOMPAS_XKB_LAYOUT=${KOMPAS_XKB_LAYOUT:-us,ru}
@@ -48,5 +49,8 @@ for _ in $(seq 100); do [ -e "/tmp/.X11-unix/X$n" ] && break; sleep 0.1; done
 export DISPLAY=$KOMPAS_DISPLAY QT_QPA_PLATFORM=xcb
 setxkbmap -layout "$KOMPAS_XKB_LAYOUT" -option "$KOMPAS_XKB_OPTION" || true
 openbox --config-file "$KOMPAS_OB_RC" >/dev/null 2>&1 &
+if [ -z "$KOMPAS_BIN" ]; then
+  KOMPAS_BIN=kHome; [ -x "$KOMPAS_DIR/Bin/kStudy" ] && KOMPAS_BIN=kStudy
+fi
 "$KOMPAS_DIR/Bin/$KOMPAS_BIN"
 '
